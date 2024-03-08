@@ -1098,7 +1098,7 @@ function Stream-Setup() {
                 "$root_var" rm -rf /opt/gosumemory
             fi
         fi
-        if [[ "$gosumemorychoice" = 'y' ] || [ "$gosumemorychoice" = 'Y' ]] && [ -d /opt/gosumemory ] || [ ! -d /opt/gosumemory ] ; then
+        if [[ ("$gosumemorychoice" = 'y' ||  "$gosumemorychoice" = 'Y') && -d /opt/gosumemory || ! -d /opt/gosumemory ]] ; then
             "$root_var" apt install unzip -y
             wget https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_linux_386.zip
             unzip gosumemory_linux_386.zip -d gosumemory
