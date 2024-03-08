@@ -1091,31 +1091,49 @@ function Stream-Setup() {
         # gosumemory setup
         cd $HOME
         echo "Setting up gosumemory..."
-        "$root_var" apt install unzip -y
-        wget https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_linux_386.zip
-        unzip gosumemory_linux_386.zip -d gosumemory
-        "$root_var" rm gosumemory_linux_386.zip
-        "$root_var" mv gosumemory /opt/gosumemory
-        # make root own the gosumemory folder for security reasons, this enables us to remove the sudo password from the gosumemory command
-        "$root_var" chown -R root:root /opt/gosumemory
-        "$root_var" sed -i "s/auto/\/home\/$USER\/.local\/share\/osu-wine\/osu!/1" /opt/gosumemory/config.ini
-        "$root_var" sed -i "s/wine = false/wine = true/1" /opt/gosumemory/config.ini
-        "$root_var" chmod +x /opt/gosumemory/gosumemory
-        "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory' >> /etc/sudoers"
-        "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini' >> /etc/sudoers"
-        echo "alias gosumemory='sudo /opt/gosumemory/gosumemory'" >> $HOME/.bash_aliases
-        echo "alias gosumemory-conf='nano /opt/gosumemory/config.ini'" >> $HOME/.bash_aliases
+        if [ -d /opt/gosumemory ]; then
+            Info "gosumemory is already installed, would you like to reinstall it?"
+            read -r -p "$(Info "Choose: (Y/N)")" gosumemorychoice
+            if [ "$gosumemorychoice" = 'y' ] || [ "$gosumemorychoice" = 'Y' ]; then
+                "$root_var" rm -rf /opt/gosumemory
+            fi
+        fi
+        if [[ "$gosumemorychoice" = 'y' ] || [ "$gosumemorychoice" = 'Y' ]] && [ -d /opt/gosumemory ] || [ ! -d /opt/gosumemory ] ; then
+            "$root_var" apt install unzip -y
+            wget https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_linux_386.zip
+            unzip gosumemory_linux_386.zip -d gosumemory
+            "$root_var" rm gosumemory_linux_386.zip
+            "$root_var" mv gosumemory /opt/gosumemory
+            # make root own the gosumemory folder for security reasons, this enables us to remove the sudo password from the gosumemory command
+            "$root_var" chown -R root:root /opt/gosumemory
+            "$root_var" sed -i "s/auto/\/home\/$USER\/.local\/share\/osu-wine\/osu!/1" /opt/gosumemory/config.ini
+            "$root_var" sed -i "s/wine = false/wine = true/1" /opt/gosumemory/config.ini
+            "$root_var" chmod +x /opt/gosumemory/gosumemory
+            "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory' >> /etc/sudoers"
+            "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini' >> /etc/sudoers"
+            echo "alias gosumemory='sudo /opt/gosumemory/gosumemory'" >> $HOME/.bash_aliases
+            echo "alias gosumemory-conf='nano /opt/gosumemory/config.ini'" >> $HOME/.bash_aliases
+        fi
 
         # key-overlay setup
         echo "Setting up key-overlay..."
-        wget https://github.com/Blondazz/KeyOverlay/releases/download/v1.0.6/KeyOverlay-ubuntu-latest.zip
-        unzip KeyOverlay-ubuntu-latest.zip -d key-overlay
-        "$root_var" rm KeyOverlay-ubuntu-latest.zip
-        "$root_var" mv key-overlay /opt/key-overlay
-        "$root_var" chown -R "$USER":"$USER" /opt/key-overlay
-        "$root_var" chmod +x /opt/key-overlay/KeyOverlay
-        echo "alias key-overlay='/opt/key-overlay/KeyOverlay'" >> $HOME/.bash_aliases
-        echo "alias key-overlay-conf='nano /opt/key-overlay/config.txt'" >> $HOME/.bash_aliases
+        if [ -d /opt/key-overlay ]; then
+            Info "key-overlay is already installed, would you like to reinstall it?"
+            read -r -p "$(Info "Choose: (Y/N)")" keyoverlaychoice
+            if [ "$keyoverlaychoice" = 'y' ] || [ "$keyoverlaychoice" = 'Y' ]; then
+                "$root_var" rm -rf /opt/key-overlay
+            fi
+        fi
+        if [[ "$keyoverlaychoice" = 'y' ] || [ "$keyoverlaychoice" = 'Y' ]] && [ -d /opt/key-overlay ] || [ ! -d /opt/key-overlay ] ; then
+            wget https://github.com/Blondazz/KeyOverlay/releases/download/v1.0.6/KeyOverlay-ubuntu-latest.zip
+            unzip KeyOverlay-ubuntu-latest.zip -d key-overlay
+            "$root_var" rm KeyOverlay-ubuntu-latest.zip
+            "$root_var" mv key-overlay /opt/key-overlay
+            "$root_var" chown -R "$USER":"$USER" /opt/key-overlay
+            "$root_var" chmod +x /opt/key-overlay/KeyOverlay
+            echo "alias key-overlay='/opt/key-overlay/KeyOverlay'" >> $HOME/.bash_aliases
+            echo "alias key-overlay-conf='nano /opt/key-overlay/config.txt'" >> $HOME/.bash_aliases
+        fi
 
         # Stream setup
         echo "alias stream-setup='key-overlay | gosumemory'" >> $HOME/.bash_aliases
