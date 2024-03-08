@@ -1098,9 +1098,11 @@ function Stream-Setup() {
         "$root_var" mv gosumemory /opt/gosumemory
         # make root own the gosumemory folder for security reasons, this enables us to remove the sudo password from the gosumemory command
         "$root_var" chown -R root:root /opt/gosumemory
-        "$root_var" chown "$USER":"$USER" /opt/gosumemory/config.ini
+        "$root_var" sed -i "s/auto/\/home\/$USER\/.local\/share\/osu-wine\/osu!/1" /opt/gosumemory/config.ini
+        "$root_var" sed -i "s/wine = false/wine = true/1" /opt/gosumemory/config.ini
         "$root_var" chmod +x /opt/gosumemory/gosumemory
         "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory' >> /etc/sudoers"
+        "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/config.ini' >> /etc/sudoers"
         echo "alias gosumemory='sudo /opt/gosumemory/gosumemory'" >> $HOME/.bash_aliases
         echo "alias gosumemory-conf='nano /opt/gosumemory/config.ini'" >> $HOME/.bash_aliases
 
