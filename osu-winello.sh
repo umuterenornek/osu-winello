@@ -1124,7 +1124,7 @@ function Stream-Setup() {
                 "$root_var" rm -rf /opt/key-overlay
             fi
         fi
-        if [[ "$keyoverlaychoice" = 'y' ] || [ "$keyoverlaychoice" = 'Y' ]] && [ -d /opt/key-overlay ] || [ ! -d /opt/key-overlay ] ; then
+        if [[ ("$keyoverlaychoice" = 'y' || "$keyoverlaychoice" = 'Y') && -d /opt/key-overlay || ! -d /opt/key-overlay ]] ; then
             wget https://github.com/Blondazz/KeyOverlay/releases/download/v1.0.6/KeyOverlay-ubuntu-latest.zip
             unzip KeyOverlay-ubuntu-latest.zip -d key-overlay
             "$root_var" rm KeyOverlay-ubuntu-latest.zip
