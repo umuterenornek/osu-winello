@@ -1047,7 +1047,7 @@ function Stream-Setup() {
         # OBS
         echo "Setting up OBS for streaming..."
         "$root_var" apt update && "$root_var" apt install -y flatpak
-        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo -y
+        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
         flatpak install flathub com.obsproject.Studio --noninteractive -y
         flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture//23.08 --noninteractive -y
         flatpak install com.obsproject.Studio.Plugin.OBSVkCapture --noninteractive -y
@@ -1093,7 +1093,7 @@ function Stream-Setup() {
         echo "Setting up gosumemory..."
         if [ -d /opt/gosumemory ]; then
             Info "gosumemory is already installed, would you like to reinstall it?"
-            read -r -p "$(Info "Choose: (Y/N)")" gosumemorychoice
+            read -r -p "$(Info "Choose(Y/N): ")" gosumemorychoice
             if [ "$gosumemorychoice" = 'y' ] || [ "$gosumemorychoice" = 'Y' ]; then
                 "$root_var" rm -rf /opt/gosumemory
             fi
@@ -1119,7 +1119,7 @@ function Stream-Setup() {
         echo "Setting up key-overlay..."
         if [ -d /opt/key-overlay ]; then
             Info "key-overlay is already installed, would you like to reinstall it?"
-            read -r -p "$(Info "Choose: (Y/N)")" keyoverlaychoice
+            read -r -p "$(Info "Choose(Y/N): ")" keyoverlaychoice
             if [ "$keyoverlaychoice" = 'y' ] || [ "$keyoverlaychoice" = 'Y' ]; then
                 "$root_var" rm -rf /opt/key-overlay
             fi
@@ -1137,7 +1137,8 @@ function Stream-Setup() {
 
         # Stream setup
         echo "alias stream-setup='key-overlay | gosumemory'" >> $HOME/.bash_aliases
-        
+
+        Info "Stream setup is complete!"
     else
         Info "Stream setup only works for ubuntu for now."
     fi
@@ -1177,6 +1178,8 @@ function OTD_Setup() {
         "$root_var" udevadm control --reload-rules && "$root_var" udevadm trigger
         "$root_var" update-initramfs -u
         systemctl --user enable --now opentabletdriver
+        
+        Info "OpenTabletDriver setup is complete!"
     else
         Info "Tablet driver setup only works for ubuntu for now."
     fi
