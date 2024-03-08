@@ -204,10 +204,10 @@ function Dependencies(){
                 "$root_var" apt update
                 "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
                 "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
-                "$root_var" add-apt-repository ppa:pipewire-debian/pipewire-upstream
+                "$root_var" add-apt-repository ppa:pipewire-debian/pipewire-upstream -y
                 "$root_var" apt update
                 "$root_var" apt install -y pipewire libspa-0.2-bluetooth pipewire-audio-client-libraries
-                "$root_var" add-apt-repository ppa:pipewire-debian/wireplumber-upstream
+                "$root_var" add-apt-repository ppa:pipewire-debian/wireplumber-upstream -y
                 "$root_var" apt update 
                 "$root_var" apt install -y wireplumber
                 systemctl --user daemon-reload
@@ -1033,6 +1033,14 @@ EOF
 }
 
 function Stream-Setup() {
+    # Setting root perms. to either 'sudo' or 'doas'
+    root_var="sudo"
+    if command -v doas >/dev/null 2>&1 ; then
+        doascheck=$(doas id -u)
+        if [ "$doascheck" = "0" ] ; then 
+            root_var="doas"
+        fi
+    fi
     osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
 
     if [ ${osid} == "ubuntu" ]; then
@@ -1114,6 +1122,14 @@ function Stream-Setup() {
 }
 
 function OTD_Setup() {
+    # Setting root perms. to either 'sudo' or 'doas'
+    root_var="sudo"
+    if command -v doas >/dev/null 2>&1 ; then
+        doascheck=$(doas id -u)
+        if [ "$doascheck" = "0" ] ; then 
+            root_var="doas"
+        fi
+    fi
     osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
 
     if [ ${osid} == "ubuntu" ]; then
