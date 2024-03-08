@@ -1047,10 +1047,10 @@ function Stream-Setup() {
         # OBS
         echo "Setting up OBS for streaming..."
         "$root_var" apt update && "$root_var" apt install -y flatpak
-        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-        flatpak install flathub com.obsproject.Studio -y
-        flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture -y
-        flatpak install com.obsproject.Studio.Plugin.OBSVkCapture -y
+        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo --noninteractive -y
+        flatpak install flathub com.obsproject.Studio --noninteractive -y
+        flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture --noninteractive -y
+        flatpak install com.obsproject.Studio.Plugin.OBSVkCapture --noninteractive -y
 
         # OBS game-capture
         echo "Setting up OBS game-capture..."
@@ -1098,9 +1098,11 @@ function Stream-Setup() {
         "$root_var" mv gosumemory /opt/gosumemory
         # make root own the gosumemory folder for security reasons, this enables us to remove the sudo password from the gosumemory command
         "$root_var" chown -R root:root /opt/gosumemory
+        "$root_var" chown "$USER":"$USER" /opt/gosumemory/config.ini
         "$root_var" chmod +x /opt/gosumemory/gosumemory
         "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory' >> /etc/sudoers"
         echo "alias gosumemory='sudo /opt/gosumemory/gosumemory'" >> $HOME/.bash_aliases
+        echo "alias gosumemory-conf='nano /opt/gosumemory/config.ini'" >> $HOME/.bash_aliases
 
         # key-overlay setup
         echo "Setting up key-overlay..."
@@ -1108,7 +1110,7 @@ function Stream-Setup() {
         unzip KeyOverlay-ubuntu-latest.zip -d key-overlay
         "$root_var" rm KeyOverlay-ubuntu-latest.zip
         "$root_var" mv key-overlay /opt/key-overlay
-        "$root_var" chown -R $USER:$USER /opt/key-overlay
+        "$root_var" chown -R "$USER":"$USER" /opt/key-overlay
         "$root_var" chmod +x /opt/key-overlay/KeyOverlay
         echo "alias key-overlay='/opt/key-overlay/KeyOverlay'" >> $HOME/.bash_aliases
         echo "alias key-overlay-conf='nano /opt/key-overlay/config.txt'" >> $HOME/.bash_aliases
