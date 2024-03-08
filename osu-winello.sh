@@ -1047,9 +1047,9 @@ function Stream-Setup() {
         # OBS
         echo "Setting up OBS for streaming..."
         "$root_var" apt update && "$root_var" apt install -y flatpak
-        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo --noninteractive -y
+        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo -y
         flatpak install flathub com.obsproject.Studio --noninteractive -y
-        flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture --noninteractive -y
+        flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture//23.08 --noninteractive -y
         flatpak install com.obsproject.Studio.Plugin.OBSVkCapture --noninteractive -y
 
         # OBS game-capture
