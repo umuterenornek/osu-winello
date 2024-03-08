@@ -194,7 +194,6 @@ function Dependencies(){
                 "$root_var" apt install -y git curl steam-installer build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
             
             else
-            
                 Info "Installing packages and wine-staging dependencies.."
 
                 "$root_var" apt update && "$root_var" apt upgrade -y
@@ -205,7 +204,20 @@ function Dependencies(){
                 "$root_var" apt update
                 "$root_var" apt install -y --install-recommends winehq-staging || Error "Some libraries didn't install for some reason, check apt or your connection" 
                 "$root_var" apt install -y git curl steam build-essential zstd p7zip-full zenity || Error "Some libraries didn't install for some reason, check apt or your connection"
-            
+                "$root_var" add-apt-repository ppa:pipewire-debian/pipewire-upstream
+                "$root_var" apt update
+                "$root_var" apt install -y pipewire libspa-0.2-bluetooth pipewire-audio-client-libraries
+                "$root_var" add-apt-repository ppa:pipewire-debian/wireplumber-upstream
+                "$root_var" apt update 
+                "$root_var" apt install -y wireplumber
+                systemctl --user daemon-reload
+                systemctl --user --now disable pulseaudio.service pulseaudio.socket
+                systemctl --user mask pulseaudio
+                systemctl --user --now enable pipewire pipewire-pulse
+                "$root_var" sed -i 's/#?pulse.min.req\s*=\s*\d+/pulse.min.req = 64/48000/1' $HOME/.config/pipewire/pipewire-pulse.conf
+                "$root_var" sed -i 's/#?pulse.min.quantum\s*=\s*\d+/pulse.min.req = 64/48000/1' $HOME/.config/pipewire/pipewire-pulse.conf
+                "$root_var" apt install -y x11-server-utils
+                echo "alias gamma='xgamma -gamma'" >> $HOME/.bash_aliases
                 Info "Dependencies done, skipping.."
         
             fi
@@ -1020,6 +1032,118 @@ EOF
     Info "All done! Fonts are fixed now!"
 }
 
+function Stream-Setup() {
+    osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
+
+    if [ ${osid} == "ubuntu" ]; then
+        # OBS
+        echo "Setting up OBS for streaming..."
+        "$root_var" apt update && "$root_var" apt install -y flatpak
+        flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+        flatpak install flathub com.obsproject.Studio -y
+        flatpak install org.freedesktop.Platform.VulkanLayer.OBSVkCapture -y
+        flatpak install com.obsproject.Studio.Plugin.OBSVkCapture -y
+
+        # OBS game-capture
+        echo "Setting up OBS game-capture..."
+        "$root_var" apt install cmake -y
+        "$root_var" apt install libvulkan-dev libvulkan-dev:i386 -y
+        "$root_var" apt install libgl-dev libgl-dev:i386 -y
+        "$root_var" apt install libegl-dev libegl-dev:i386 -y
+        "$root_var" apt install libx11-dev libx11-dev:i386 -y
+        "$root_var" apt install libxcb1-dev libxcb1-dev:i386 -y
+        "$root_var" apt install pkg-config -y
+        "$root_var" apt install libobs-dev -y
+        "$root_var" apt install gcc-multilib g++-multilib -y
+
+        git clone https://github.com/nowrep/obs-vkcapture.git
+        cd obs-vkcapture
+        git pull
+        "$root_var" rm -rf build build32
+        mkdir -p build build32
+
+        #64-bit installation
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu -DCMAKE_BUILD_TYPE=Release ..
+        make
+        "$root_var" make install
+        cd ..
+
+        #32 bit installation
+        cd build32
+        export CFLAGS="-m32 ${CFLAGS}"
+        export CXXFLAGS="-m32 ${CXXFLAGS}"
+        export LDFLAGS="-m32 ${LDFLAGS}"
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib/i386-linux-gnu -DCMAKE_BUILD_TYPE=Release -DBUILD_PLUGIN=OFF ..
+        make
+        "$root_var" make install
+        unset CFLAGS CXXFLAGS LDFLAGS
+        echo "Done!"
+
+        # gosumemory setup
+        cd $HOME
+        echo "Setting up gosumemory..."
+        "$root_var" apt install unzip -y
+        wget https://github.com/l3lackShark/gosumemory/releases/download/1.3.9/gosumemory_linux_386.zip
+        unzip gosumemory_linux_386.zip -d gosumemory
+        "$root_var" rm gosumemory_linux_386.zip
+        "$root_var" mv gosumemory /opt/gosumemory
+        # make root own the gosumemory folder for security reasons, this enables us to remove the sudo password from the gosumemory command
+        "$root_var" chown -R root:root /opt/gosumemory
+        "$root_var" chmod +x /opt/gosumemory/gosumemory
+        "$root_var" grep -qxF "$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory" /etc/sudoers || "$root_var" sh -c "echo '$USER   ALL=(ALL) NOPASSWD: /opt/gosumemory/gosumemory' >> /etc/sudoers"
+        echo "alias gosumemory='sudo /opt/gosumemory/gosumemory'" >> $HOME/.bash_aliases
+
+        # key-overlay setup
+        echo "Setting up key-overlay..."
+        wget https://github.com/Blondazz/KeyOverlay/releases/download/v1.0.6/KeyOverlay-ubuntu-latest.zip
+        unzip KeyOverlay-ubuntu-latest.zip -d key-overlay
+        "$root_var" rm KeyOverlay-ubuntu-latest.zip
+        "$root_var" mv key-overlay /opt/key-overlay
+        "$root_var" chown -R $USER:$USER /opt/key-overlay
+        "$root_var" chmod +x /opt/key-overlay/KeyOverlay
+        echo "alias key-overlay='/opt/key-overlay/KeyOverlay'" >> $HOME/.bash_aliases
+        echo "alias key-overlay-conf='nano /opt/key-overlay/config.txt'" >> $HOME/.bash_aliases
+
+        # Stream setup
+        echo "alias stream-setup='key-overlay | gosumemory'" >> $HOME/.bash_aliases
+        
+    else
+        Info "Stream setup only works for ubuntu for now."
+    fi
+}
+
+function OTD_Setup() {
+    osid=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"') 
+
+    if [ ${osid} == "ubuntu" ]; then
+        echo "Setting up OpenTabletDriver..."
+        wget https://github.com/OpenTabletDriver/OpenTabletDriver/releases/latest/download/OpenTabletDriver.deb
+        "$root_var" apt install ./OpenTabletDriver.deb -y
+        "$root_var" rm OpenTabletDriver.deb
+        # remove pre installed wacom drivers
+        for c in /etc/udev/rules.d/9{0,9}-opentabletdriver.rules; do
+            if [ -f "${c}" ]; then
+                "$root_var" rm "${c}"
+            fi
+        done
+
+        if [ -f /etc/modprobe.d/blacklist.conf ]; then
+            "$root_var" rm /etc/modprobe.d/blacklist.conf
+        fi
+
+        "$root_var" modprobe uinput
+        "$root_var" rmmod wacom > /dev/null 2>&1
+        "$root_var" rmmod hid_uclogic > /dev/null 2>&1
+
+        "$root_var" udevadm control --reload-rules && "$root_var" udevadm trigger
+        "$root_var" update-initramfs -u
+        systemctl --user enable --now opentabletdriver
+    else
+        Info "Tablet driver setup only works for ubuntu for now."
+    fi
+}
+
 
 # Help!
 function Help(){
@@ -1065,6 +1189,14 @@ case "$1" in
 
     'update')
     Update
+    ;;
+
+    'stream-setup')
+    Stream-Setup
+    ;;
+
+    'otd-setup')
+    OTD_Setup
     ;;
 
     'help')
